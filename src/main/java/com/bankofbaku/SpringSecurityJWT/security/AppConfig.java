@@ -47,9 +47,9 @@ public class AppConfig extends WebSecurityConfigurerAdapter {
         http.authorizeRequests()
                 .antMatchers("/auth/login").permitAll()
                 .antMatchers(HttpMethod.GET,"/api/users").hasAnyAuthority("ADMIN","EDITOR")
-                .antMatchers(HttpMethod.POST, "api/users//add/user").hasAnyAuthority("ADMIN")
+                .antMatchers(HttpMethod.POST, "api/users/add/user").hasAnyAuthority("ADMIN")
                 .antMatchers(HttpMethod.PUT,"api/users/update/user/**").hasAnyAuthority("ADMIN","EDITOR")
-                .antMatchers(HttpMethod.DELETE,"api/users/delete/user/**").hasAnyAuthority("ADMIN")
+                .antMatchers(HttpMethod.DELETE,"api/users/delete/user/**").hasAuthority("ADMIN")
                 .anyRequest().authenticated();
         http.exceptionHandling()
                 .authenticationEntryPoint(
