@@ -7,6 +7,8 @@ import com.bankofbaku.SpringSecurityJWT.exceptions.IsNotValidException;
 import com.bankofbaku.SpringSecurityJWT.exceptions.NotFoundException;
 import com.bankofbaku.SpringSecurityJWT.repositories.UserRepository;
 import org.modelmapper.ModelMapper;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -17,8 +19,8 @@ import java.util.stream.Collectors;
 
 @Service
 public class UserServiceImpl implements UserService {
-    private UserRepository userRepository;
-    private ModelMapper modelMapper;
+    private final UserRepository userRepository;
+    private final ModelMapper modelMapper;
 
     public UserServiceImpl(UserRepository userRepository, ModelMapper modelMapper) {
         this.userRepository = userRepository;
@@ -27,8 +29,9 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public List<UserDto> getAllUsers() {
+
         List<UserDto> users = userRepository.findAll().stream().map(user -> modelMapper.map(user, UserDto.class)).collect(Collectors.toList());
-        if (users.isEmpty()) {
+        if (users.size()==0) {
             throw new NotFoundException("No data found");
         } else {
             return users;
@@ -70,7 +73,7 @@ public class UserServiceImpl implements UserService {
         user.get().setUsername(userDto.getUsername());
         user.get().setPassword(encodePassword(userDto.getPassword()));
         userRepository.save(user.get());
-        return modelMapper.map(user, UserDto.class);
+        return modelMapper.map(userRepository.findById(id), UserDto.class);
     }
 
     @Override
@@ -93,6 +96,14 @@ public class UserServiceImpl implements UserService {
         return matchedEntities;
     }
 
+    public UserDto getUserById(Long id){
+        Optional<User> user = userRepository.findById(id);
+        if(user.isPresent()){
+            return modelMapper.map(user.get(), UserDto.class);
+        }
+        throw new NotFoundException("User doesn't exist");
+
+    }
     private boolean isValidUsername(String username) {
         String regex = "^[a-zA-Z0-9._-]{3,}$";
         return username.matches(regex) ? true : false;
@@ -103,7 +114,7 @@ public class UserServiceImpl implements UserService {
         return password.matches(regex) ? true : false;
     }
 
-    private String encodePassword(String password) {
+    public String encodePassword(String password) {
         BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
         String encodedPsw = encoder.encode(password);
         return encodedPsw;

@@ -2,18 +2,15 @@ package com.bankofbaku.SpringSecurityJWT.entities;
 
 import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import javax.persistence.*;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 @Entity
 @Table(name="users")
 @Data
-@Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 public class User implements UserDetails {
@@ -23,14 +20,29 @@ public class User implements UserDetails {
     private String username;
     private String password;
 
+    @ManyToMany
+            @JoinTable(
+                    name = "users_roles",
+                    joinColumns = @JoinColumn(name="user_id"),
+                    inverseJoinColumns = @JoinColumn(name = "role_id")
+    )
+    Set<Role> roles = new HashSet<>();
+
+    public void addRole(Role role){
+        this.roles.add(role);
+    }
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return null;
+        List<SimpleGrantedAuthority> authorities=new ArrayList<>();
+        for(Role role : roles){
+            authorities.add(new SimpleGrantedAuthority(role.getName()));
+        }
+        return authorities;
     }
 
     @Override
     public String getUsername() {
-        return this.getUsername();
+        return this.username;
     }
 
     @Override
@@ -52,5 +64,5 @@ public class User implements UserDetails {
     public boolean isEnabled() {
         return true;
     }
-    // Set<Role> roles = new HashSet<>();
+
 }
